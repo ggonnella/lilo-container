@@ -41,8 +41,7 @@ clean:
 	docker image rm -f ${IMAGE_NAME} || true
 
 shell:
-	docker exec -it ${CONTAINER_NAME} true || make container
-	docker exec -it ${CONTAINER_NAME} /bin/bash
+	docker run --rm -ti lilo
 
 run:
 	docker exec -it ${CONTAINER_NAME} true || make container

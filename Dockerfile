@@ -1,51 +1,91 @@
 # syntax=docker/dockerfile:1
 
 FROM ubuntu:23.10
+SHELL ["/bin/bash", "-c"]
+
+# (1) Install basic packages as root user (of the container)
 
 USER root
-RUN apt-get update -y
-RUN apt-get install --no-install-recommends --yes \
-      build-essential software-properties-common \
-      wget git curl time tini bzip2 ca-certificates
-SHELL ["/bin/bash", "-c"]
+RUN <<EOT
+  apt-get update -y
+  apt-get install --no-install-recommends --yes \
+      build-essential \
+      software-properties-common \
+      wget \
+      git \
+      curl \
+      time \
+      tini \
+      bzip2 \
+      ca-certificates
+EOT
+
+# (2) Create a normal user and switch to it
 
 RUN useradd -ms /bin/bash user
 USER user
-WORKDIR /home/user
+ARG HOME=/home/user
+WORKDIR $HOME
 
-# Install Mamba
+# (3) Install Mamba Miniforge
 
-ENV MAMBA_URLBASE=https://github.com/conda-forge/miniforge/releases/download/
-ENV MINIFORGE_NAME=Mambaforge
-ENV MINIFORGE_VERSION=23.3.1-1
-ENV CONDA_DIR=/home/user/miniforge
-ENV PLATFORM=Linux-x86_64
-
-RUN wget --no-hsts --quiet \
-  ${MAMBA_URLBASE}/${MINIFORGE_VERSION}/${MINIFORGE_NAME}-${MINIFORGE_VERSION}-${PLATFORM}.sh \
-  -O /tmp/miniforge.sh
-RUN bash /tmp/miniforge.sh -b -p ${CONDA_DIR} && rm /tmp/miniforge.sh
+ARG MFVER=23.3.1-1
+ARG CONDA_DIR=$HOME/miniforge
 ENV PATH=${CONDA_DIR}/bin:${PATH}
 
-RUN mamba init bash
-RUN mamba config --add channels bioconda
+RUN <<EOT
+  URL=https://github.com/conda-forge/miniforge/releases/download/${MFVER}/Mambaforge-${MFVER}-Linux-x86_64.sh
+  wget --no-hsts --quiet $URL -O /tmp/miniforge.sh
+  bash /tmp/miniforge.sh -b -p ${CONDA_DIR}
+  rm /tmp/miniforge.sh
+  mamba init bash
+  mamba config --add channels bioconda
+EOT
 
-# Install LILO
+# (4) Install LILO
 
-RUN git clone https://github.com/amandawarr/Lilo
-WORKDIR /home/user/Lilo
-RUN mamba env create --file LILO.yaml
-RUN echo "mamba activate LILO" >> ~/.bashrc
-RUN mamba env create -f scaffold_builder.yaml
+RUN <<EOT
+  git clone https://github.com/amandawarr/Lilo
+  cd $HOME/Lilo
+  mamba env create --file LILO.yaml
+  echo "mamba activate LILO" >> ~/.bashrc
+  mamba env create -f scaffold_builder.yaml
+EOT
 
-WORKDIR /home/user/
-RUN git clone https://github.com/sclamons/Porechop-1
-WORKDIR /home/user/Porechop-1
-RUN mamba install gcc=13 --yes
-RUN pip install .
-RUN porechop -h
+# (5) Install the Porechop fork required by LILO
 
-#ENTRYPOINT ["tini", "--"]
-#CMD ["/bin/bash"]
+RUN <<EOT
+  git clone https://github.com/sclamons/Porechop-1
+  cd $HOME/Porechop-1
+  mamba install gcc=13 --yes
+  pip install .
+  porechop -h
+EOT
+
+# (6) Edit the configuration file in Lilo/schemes/ASFV
+
+ENV ASFVDIR=$HOME/Lilo/schemes/ASFV
+ARG MEDAKA=r104_e81_sup_g5015
+
+COPY --chown=user <<-EOT $ASFVDIR/config.file
+scheme: $ASFVDIR/ASFV.scheme.bed
+reference: $ASFVDIR/ASFV.reference.fasta
+primers: $ASFVDIR/ASFV.primers.csv
+medaka: $MEDAKA
+EOT
+
+# (7) Create a script for running LILO
+
+ENV NCORES=64
+COPY --chown=user <<-EOT $HOME/run_lilo.sh
+#!/bin/bash
+snakemake -k -s ~/Lilo/LILO --configfile $ASFVDIR/config.file --cores $NCORES
+EOT
+RUN chmod +x $HOME/run_lilo.sh
+
+VOLUME /srv/giorgio/virology/ASVF/runs/
+#20230908_AFS_Run_03_R10/
+
+# (8) Entry point
 
 CMD bash
