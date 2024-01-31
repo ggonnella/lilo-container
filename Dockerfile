@@ -65,27 +65,17 @@ EOT
 # (6) Edit the configuration file in Lilo/schemes/ASFV
 
 ENV ASFVDIR=$HOME/Lilo/schemes/ASFV
-ARG MEDAKA=r104_e81_sup_g5015
 
 COPY --chown=user <<-EOT $ASFVDIR/config.file
 scheme: $ASFVDIR/ASFV.scheme.bed
 reference: $ASFVDIR/ASFV.reference.fasta
 primers: $ASFVDIR/ASFV.primers.csv
-medaka: $MEDAKA
 EOT
 
 # (7) Create a script for running LILO
 
-ENV NCORES=64
-COPY --chown=user <<-EOT $HOME/run_lilo.sh
-#!/bin/bash
-snakemake -k -s ~/Lilo/LILO --configfile $ASFVDIR/config.file --cores $NCORES
-EOT
+COPY --chown=user run_lilo.sh $HOME/run_lilo.sh
 RUN chmod +x $HOME/run_lilo.sh
 
-VOLUME /srv/giorgio/virology/ASVF/runs/
-#20230908_AFS_Run_03_R10/
-
-# (8) Entry point
-
-CMD bash
+# (8) Finalize
+#CMD bash
