@@ -70,8 +70,8 @@ EOT
 # === Copy scripts to the container and add $HOME/scripts to its PATH
 RUN mkdir $HOME/scripts
 ENV PATH=${HOME}/scripts:${PATH}
-COPY run_lilo.sh $HOME/scripts/run_lilo.sh
-RUN chmod +x $HOME/scripts/run_lilo.sh
+COPY run_lilo_ASFV.sh $HOME/scripts/run_lilo_ASFV.sh
+RUN chmod +x $HOME/scripts/run_lilo_ASFV.sh
 COPY combine_barcodes_fastq.sh \
                   $HOME/scripts/combine_barcodes_fastq.sh
 RUN chmod +x $HOME/scripts/combine_barcodes_fastq.sh

@@ -5,6 +5,6 @@ if [ "$1" == "" ]; then
   exit 1
 fi
 
-IMG=lilo
+IMG=lilo_asfv
 TAG=$1
 docker load --input $IMG-$TAG.docker.tar

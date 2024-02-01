@@ -16,9 +16,11 @@ function usage {
   echo "      <medaka>   Medaka configuration to use"
 }
 
+IMG=lilo_asfv
+
 if [ $# -eq 1 ]; then
   if [ $1 == "interactive" ]; then
-    docker run --rm -it lilo bash
+    docker run --rm -it $IMG bash
     exit $?
   fi
   usage > /dev/stderr
@@ -47,5 +49,5 @@ docker run --rm -it \
   -e HOSTUSER=$(id -u) \
   -e MEDAKA=$MEDAKA \
   --mount type=bind,source=$WORKDIR,target=$DOCKERHOME/workdir \
-  lilo \
-  bash -ic 'run_lilo.sh'
+  $IMG \
+  bash -ic 'run_lilo_ASFV.sh'

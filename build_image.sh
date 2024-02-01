@@ -1,2 +1,3 @@
 #!/bin/bash
-docker build -t lilo .
+IMG=lilo_asfv
+docker build -t $IMG .
