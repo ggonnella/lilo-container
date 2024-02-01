@@ -35,7 +35,6 @@ RUN <<EOT
   wget --no-hsts --quiet $URL -O /tmp/miniforge.sh
   bash /tmp/miniforge.sh -b -p ${CONDA_DIR}
   rm /tmp/miniforge.sh
-  mamba init bash
   mamba config --add channels bioconda
 EOT
 
@@ -45,8 +44,7 @@ RUN <<EOT
   git clone https://github.com/amandawarr/Lilo
   cd $HOME/Lilo
   mamba env create --file LILO.yaml
-  echo "mamba activate LILO" >> ~/.bashrc
-  mamba env create -f scaffold_builder.yaml
+  mamba env create --file scaffold_builder.yaml
 EOT
 
 # === Install the Porechop fork required by LILO
