@@ -3,9 +3,11 @@
 FROM ubuntu:23.10
 SHELL ["/bin/bash", "-c"]
 
-# (1) Install basic packages as root user (of the container)
+# === Install basic packages as root user (of the container)
 
 USER root
+ARG HOME=/root
+WORKDIR $HOME
 RUN <<EOT
   apt-get update -y
   apt-get install --no-install-recommends --yes \
@@ -17,17 +19,12 @@ RUN <<EOT
       time \
       tini \
       bzip2 \
-      ca-certificates
+      ca-certificates \
+      vim \
+      sudo
 EOT
 
-# (2) Create a normal user and switch to it
-
-RUN useradd -ms /bin/bash user
-USER user
-ARG HOME=/home/user
-WORKDIR $HOME
-
-# (3) Install Mamba Miniforge
+# === Install Mamba Miniforge
 
 ARG MFVER=23.3.1-1
 ARG CONDA_DIR=$HOME/miniforge
@@ -42,7 +39,7 @@ RUN <<EOT
   mamba config --add channels bioconda
 EOT
 
-# (4) Install LILO
+# === Install LILO
 
 RUN <<EOT
   git clone https://github.com/amandawarr/Lilo
@@ -52,7 +49,7 @@ RUN <<EOT
   mamba env create -f scaffold_builder.yaml
 EOT
 
-# (5) Install the Porechop fork required by LILO
+# === Install the Porechop fork required by LILO
 
 RUN <<EOT
   git clone https://github.com/sclamons/Porechop-1
@@ -62,20 +59,29 @@ RUN <<EOT
   porechop -h
 EOT
 
-# (6) Edit the configuration file in Lilo/schemes/ASFV
+# === Edit the configuration file in Lilo/schemes/ASFV
 
 ENV ASFVDIR=$HOME/Lilo/schemes/ASFV
 
-COPY --chown=user <<-EOT $ASFVDIR/config.file
+COPY <<-EOT $ASFVDIR/config.file
 scheme: $ASFVDIR/ASFV.scheme.bed
 reference: $ASFVDIR/ASFV.reference.fasta
 primers: $ASFVDIR/ASFV.primers.csv
 EOT
 
-# (7) Create a script for running LILO
+# === Copy scripts to the container and add $HOME/scripts to its PATH
+RUN mkdir $HOME/scripts
+ENV PATH=${HOME}/scripts:${PATH}
+COPY run_lilo.sh $HOME/scripts/run_lilo.sh
+RUN chmod +x $HOME/scripts/run_lilo.sh
+COPY combine_barcodes_fastq.sh \
+                  $HOME/scripts/combine_barcodes_fastq.sh
+RUN chmod +x $HOME/scripts/combine_barcodes_fastq.sh
 
-COPY --chown=user run_lilo.sh $HOME/run_lilo.sh
-RUN chmod +x $HOME/run_lilo.sh
+# === Create a normal user and switch to it
 
-# (8) Finalize
-#CMD bash
+#RUN useradd -ms /bin/bash user
+#USER user
+#ARG HOME=/home/user
+#WORKDIR $HOME
+
