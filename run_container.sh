@@ -9,11 +9,11 @@ function usage {
   echo
   echo
   echo "  Run the LILO pipeline:"
-  echo "    $0 <reads_directory> <medaka>"
+  echo "    $0 <workdir> <medaka>"
   echo
   echo "    Arguments:"
-  echo "      <reads_directory>  Directory containing the reads"
-  echo "      <medaka>           Medaka configuration to use"
+  echo "      <workdir>  Working directory, must contain the 'raw' directory"
+  echo "      <medaka>   Medaka configuration to use"
 }
 
 if [ $# -eq 1 ]; then
@@ -28,16 +28,24 @@ elif [ $# -ne 2 ]; then
   exit 1
 fi
 
-READS_DIR=$1
+WORKDIR=$1
 MEDAKA=$2
 
-if [ ! -d $READS_DIR ]; then
-  echo "Error: $READS_DIR is not a directory" > /dev/stderr
+if [ ! -d $WORKDIR ]; then
+  echo "Error: $WORKDIR is not a directory" > /dev/stderr
   exit 1
 fi
 
+if [ ! -d $WORKDIR/raw ]; then
+  echo "Error: $WORKDIR does not contain a directory called raw" > /dev/stderr
+  exit 1
+fi
+
+DOCKERHOME=/root
+
 docker run --rm -it \
+  -e HOSTUSER=$(id -u) \
   -e MEDAKA=$MEDAKA \
-  --mount type=bind,source=$READS_DIR,target=/home/user/raw \
+  --mount type=bind,source=$WORKDIR,target=$DOCKERHOME/workdir \
   lilo \
-  bash -ic '/home/user/run_lilo.sh'
+  bash -ic 'run_lilo.sh'
