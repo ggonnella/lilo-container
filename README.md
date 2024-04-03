@@ -41,9 +41,9 @@ To run the pipeline you need two pieces of information:
 
 Then the pipeline is run using:
 ```
-run_lilo_ASFV_docker.sh $MEDAKA $WORKDIR
+run_lilo_ASFV_docker.sh $WORKDIR $MEDAKA
 ```
 for example:
 ```
-run_lilo_ASFV_docker.sh r104_e81_sup_g5015 /srv/xyz/reads/foobar
+run_lilo_ASFV_docker.sh /srv/xyz/reads/foobar r104_e81_sup_g5015
 ```
