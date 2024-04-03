@@ -23,10 +23,10 @@ if [ $# -eq 1 ]; then
     docker run --rm -it $IMG bash
     exit $?
   fi
-  usage > /dev/stderr
+  usage 
   exit 1
 elif [ $# -ne 2 ]; then
-  usage > /dev/stderr
+  usage 
   exit 1
 fi
 
@@ -34,12 +34,12 @@ WORKDIR=$1
 MEDAKA=$2
 
 if [ ! -d $WORKDIR ]; then
-  echo "Error: $WORKDIR is not a directory" > /dev/stderr
+  echo "Error: $WORKDIR is not a directory" 
   exit 1
 fi
 
 if [ ! -d $WORKDIR/raw ]; then
-  echo "Error: $WORKDIR does not contain a directory called raw" > /dev/stderr
+  echo "Error: $WORKDIR does not contain a directory called raw" 
   exit 1
 fi
 
