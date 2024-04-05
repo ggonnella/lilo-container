@@ -17,7 +17,7 @@ function usage {
 }
 
 if [ $# -lt 1 ]; then
-  usage > /dev/stderr
+  usage
   exit 1
 fi
 OUTDIR=$1
@@ -31,7 +31,8 @@ for BCDIR in "$INDIR/barcode"[0-9][0-9]; do
     if [ $NFASTQ -gt 0 ]; then
       NBCDIRS=$[NBCDIRS+1]
       mkdir -p $OUTDIR
-      OUTFILE="$OUTDIR/${BCDIR}.fastq.gz"
+      BASEBCDIR=$(basename $BCDIR)
+      OUTFILE="$OUTDIR/${BASEBCDIR}.fastq.gz"
       cat $BCDIR/*.fastq.gz > $OUTFILE
       echo "INFO: $BCDIR: $NFASTQ fastq.gz files found" >&2
     else
