@@ -33,6 +33,34 @@ export PATH=/srv/virology/software/bin:$PATH
 
 # Usage
 
+## Step 1: Combine barcodes
+
+Before running the pipeline, you must combine the barcode reads into single files.
+This can be done using the included script ``combine_barcodes_fastq.sh``. This script
+is run as follows:
+```
+combine_barcode_fastq.sh <outdir> [<dirname>]
+
+Arguments:
+  <outdir>    the name of the output directory (e.g."raw" shall be used for Lilo)
+  <dirname>   (optional) the directory containing the barcode files;
+              if none is specified, then the currently directory is used
+```
+
+e.g.
+```
+combine_barcode_fastq.sh raw /srv/xyz/reads/foobar
+```
+
+## Step 2: Check
+
+Please check that the combined barcode files are present in the directory
+``raw``. The files should be named ``barcode01.fastq.gz`` etc.
+Important: if there are more barcodes then samples, please delete the unused
+barcode files.
+
+## Step 3: Run LILO
+
 To run the pipeline you need two pieces of information:
 1. MEDAKA: The medaka model to use e.g. ``r104_e81_sup_g5015``.
 2. WORKDIR: The parent directory of the 'raw' directory containing
